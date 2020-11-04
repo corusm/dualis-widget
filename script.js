@@ -11,21 +11,26 @@
 
 // Widget
 // Widget Parameter => E-Mail & Password
+// args.widgetParameter
+// E-Mail,PW ?
 let MEDIUMWIDGET = (config.widgetFamily === 'medium') ? true : false
 
-const widget = await createWidget()
-widget.setPadding(0,0,0,0)
+if (config.runsInWidget){
 
-if (!config.runsInWidget){
+    let widget = await createWidget()
+    widget.setPadding(0,4,0,4)
+
     if (MEDIUMWIDGET){
         await widget.presentMedium()
     } else {
         await widget.presentSmall()
     }
-}
 
-Script.setWidget(widget)
-Script.complete()
+    Script.setWidget(widget)
+    Script.complete()
+}else{
+    Safari.open("https://dualis.dhbw.de")
+}
 
 async function createWidget(){
     const list = new ListWidget()
@@ -39,19 +44,39 @@ async function createWidget(){
     headerRow.setPadding(0,0,0,0)
     headerRow.centerAlignContent()
     headerRow.addSpacer(3)
-    list.addSpacer(3)
+    list.addSpacer(5)
 
     const gradeRow = list.addStack()
-    gradeRow.layoutVertically()
+    gradeRow.layoutHorizontally()
     gradeRow.centerAlignContent()
 
-    let padding = (MEDIUMWIDGET) ? 5 : 10
-    gradeRow.addText("Fach 1: 2,9")
-    gradeRow.addText("Fach 2: 2,4")
-    gradeRow.addText("Fach 3: WKL")
-    gradeRow.backgroundColor = new Color('cccccc', 0.1)
-    gradeRow.cornerRadius = 8
-    gradeRow.setPadding(8,8,8,8)
+    createGradeBlock(gradeRow)
+
+    if (MEDIUMWIDGET) {
+        const emptySpace = gradeRow.addStack();
+        emptySpace.setPadding(0,8,0,8)
+        createGradeBlock(gradeRow)
+    }
+
+    const footer = list.addStack();
+    footer.setPadding(2,4,0,4)
+    const footerText = footer.addText("Klicken, um Dualis zu Ã¶ffnen")
+    footerText.font = Font.mediumSystemFont(10)
 
     return list
+}
+
+// Future Options: Get different sets of courses, etc.
+function createGradeBlock(gradeRow){
+    const gradeBlock = gradeRow.addStack();
+    gradeBlock.layoutVertically()
+    gradeBlock.centerAlignContent()
+    gradeBlock.addText("TheoInf: 2,9").font = Font.mediumSystemFont(14)
+    gradeBlock.addText("Mathe 1: 2,4").font = Font.mediumSystemFont(14)
+    gradeBlock.addText("Physik: WKL").font = Font.mediumSystemFont(14)
+    gradeBlock.addText("DV Linux: 3,99 lol").font = Font.mediumSystemFont(14)
+    gradeBlock.backgroundColor = new Color('cccccc', 0.1)
+    gradeBlock.cornerRadius = 8
+    gradeBlock.setPadding(8,8,8,8)
+    return gradeBlock;
 }
