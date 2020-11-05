@@ -1,3 +1,6 @@
+// Variables used by Scriptable.
+// These must be at the very top of the file. Do not edit.
+// icon-color: deep-green; icon-glyph: user-graduate;
 // Julian Yaman & Niklas Leinz
 // -----------------
 // Dualis Widget
@@ -36,7 +39,7 @@ async function createWidget(){
     const list = new ListWidget()
 
     const headerRow = list.addStack();
-    const headerText = headerRow.addText("âš”ï¸ Dualis")
+    const headerText = headerRow.addText("⚔️ Dualis")
     headerText.textColor = new Color('e74c3c', 1)
     const headerTextExtended = headerRow.addText(" - Noten")
     headerText.font = Font.mediumSystemFont(16)
@@ -50,31 +53,50 @@ async function createWidget(){
     gradeRow.layoutHorizontally()
     gradeRow.centerAlignContent()
 
-    createGradeBlock(gradeRow)
+    const placeholderDataSet = [
+        {
+            'courseName': 'TheoInf 3',
+            'grade': 2.9
+        },
+        {
+            'courseName': 'Datenbanken',
+            'grade': '⏳'
+        },
+        {
+            'courseName': 'Physik',
+            'grade': 'WKL'
+        },
+        {
+            'courseName': 'Digitaltechnik',
+            'grade': 2.4
+        }
+    ]
+
+    createGradeBlock(placeholderDataSet, 0, 3, gradeRow)
 
     if (MEDIUMWIDGET) {
         const emptySpace = gradeRow.addStack();
         emptySpace.setPadding(0,8,0,8)
-        createGradeBlock(gradeRow)
+        createGradeBlock(placeholderDataSet, 4, 7, gradeRow)
     }
 
     const footer = list.addStack();
     footer.setPadding(2,4,0,4)
-    const footerText = footer.addText("Klicken, um Dualis zu Ã¶ffnen")
+    const footerText = footer.addText("Klicken, um Dualis zu öffnen")
     footerText.font = Font.mediumSystemFont(10)
 
     return list
 }
 
 // Future Options: Get different sets of courses, etc.
-function createGradeBlock(gradeRow){
+function createGradeBlock(dataSet, minRange, maxRange, gradeRow){
     const gradeBlock = gradeRow.addStack();
     gradeBlock.layoutVertically()
     gradeBlock.centerAlignContent()
-    gradeBlock.addText("TheoInf: 2,9").font = Font.mediumSystemFont(14)
-    gradeBlock.addText("Mathe 1: 2,4").font = Font.mediumSystemFont(14)
-    gradeBlock.addText("Physik: WKL").font = Font.mediumSystemFont(14)
-    gradeBlock.addText("DV Linux: 3,99 lol").font = Font.mediumSystemFont(14)
+    for (let i = minRange; i < maxRange + 1; i++){
+        gradeBlock.addText(dataSet[i].courseName + ": " + dataSet[i].grade).font
+            = Font.mediumSystemFont(14)
+    }
     gradeBlock.backgroundColor = new Color('cccccc', 0.1)
     gradeBlock.cornerRadius = 8
     gradeBlock.setPadding(8,8,8,8)

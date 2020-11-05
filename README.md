@@ -14,4 +14,3 @@ in the text field below.
 They will only be used for accessing the Dualis dashboard.**
 
 You can check the code anytime you want to be sure that no data will be leaked.
- 
