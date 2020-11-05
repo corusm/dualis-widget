@@ -8,17 +8,22 @@
 // Contact:
 // dev@corusm.de || mail@yaman.pro
 
-// Web Crawl
+// Widget Settings
+let MEDIUMWIDGET = (config.widgetFamily === 'medium') ? true : false
+
+// Web Crawl Function
 
 
 
 // Widget
-// Widget Parameter => E-Mail & Password
-// args.widgetParameter
-// E-Mail,PW ?
-let MEDIUMWIDGET = (config.widgetFamily === 'medium') ? true : false
 
 if (config.runsInWidget){
+
+    // TODO: Check if widgetParameter contains anything
+    // TODO: Check if widgetParameter fits with the needed values (slicing out E-Mail and Password)
+    // TODO: Check if user can login (function call for login, giving the e-mail and the password as parameter values)
+    // TODO: If the login was successful, then fetch all data (function call to fetch the data)
+    // TODO: If the login was unsuccessful, then show an error message inside the widget
 
     let widget = await createWidget()
     widget.setPadding(0,4,0,4)
@@ -32,6 +37,7 @@ if (config.runsInWidget){
     Script.setWidget(widget)
     Script.complete()
 }else{
+    // Don't need to scrape the data again
     Safari.open("https://dualis.dhbw.de")
 }
 
