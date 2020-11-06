@@ -1,47 +1,110 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
-// icon-color: deep-green; icon-glyph: user-graduate;
-// Julian Yaman & Niklas Leinz
-// -----------------
-// Dualis Widget
-// -----------------
-// Contact:
-// dev@corusm.de || mail@yaman.pro
+// icon-color: green; icon-glyph: magic;
 
-// Widget Settings
 let MEDIUMWIDGET = (config.widgetFamily === 'medium') ? true : false
+let data = await loadSite()
 
-// Web Crawl Function
+async function loadSite() {
+    let data;
+    let url='https://dualis.dhbw.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000324,-Awelcome'
+    var wbv = new WebView()
+    await wbv.loadURL(url)
+    //javasript to grab data from the website
+    let jsc = `
+      var arr = new Array()
+      
+      document.getElementById('field_user').value = ""
+      document.getElementById('field_pass').value = ""
+      document.getElementById('cn_loginForm').submit()
+      
+      `
+    //Run the javascript
+    await wbv.evaluateJavaScript(jsc)
+    await wbv.waitForLoad()
 
+    let tm = new Timer()
+    tm.timeInterval = 2000
 
+    return tm.schedule(function() {
 
-// Widget
+        let jsc2 = `document.getElementsByClassName('link000310')[0].click()`
 
-if (config.runsInWidget){
+        wbv.evaluateJavaScript(jsc2)
 
-    // TODO: Check if widgetParameter contains anything
-    // TODO: Check if widgetParameter fits with the needed values (slicing out E-Mail and Password)
-    // TODO: Check if user can login (function call for login, giving the e-mail and the password as parameter values)
-    // TODO: If the login was successful, then fetch all data (function call to fetch the data)
-    // TODO: If the login was unsuccessful, then show an error message inside the widget
+        wbv.waitForLoad().then(r => { wbv.getHTML().then(r => {
 
-    let widget = await createWidget()
-    widget.setPadding(0,4,0,4)
+            let tab = r.split("table")[1]
+            tab = `<table ${tab}table>`
+            tab = tab.split('tr')
 
-    if (MEDIUMWIDGET){
-        await widget.presentMedium()
-    } else {
-        await widget.presentSmall()
-    }
+            let schnitt = r.split("table")[3].split("</th")[1].split('>')[2].trim()
 
-    Script.setWidget(widget)
-    Script.complete()
-}else{
-    // Don't need to scrape the data again
-    Safari.open("https://dualis.dhbw.de")
+            let grades = []
+            let totalCredits
+
+            // console.log(tab[1])
+            for (let to = 1; to < tab.length-1; to++) {
+                // console.log(tab[to])
+                if (tab[to].includes('T3')) {
+                    try {
+                        let modul = tab[to].split('td')[1].trim().substr(15).split('<')[0]
+                        let kurs = tab[to].split(',800,600);">')[1].split('</a>')[0]
+                        let zahlen = tab[to].split('<td class="tbdata" style="text-align:right;">')
+                        let credits = zahlen[2].trim().split('<')[0]
+                        let note = zahlen[3].trim().split('<')[0]
+
+                        grades.push({ modul: modul, kurs: kurs, credits: credits, note: note })
+
+                    } catch(e) {
+                        // console.log('error')
+                    }
+                } else if (tab[to].includes('Friedrichshafen') && tab[to].includes('Summe')) {
+                    totalCredits = tab[to].split('nowrap;"> ')[1].split(',0')[0]
+                }
+            }
+
+            // Output
+            init({noten: grades, totalCredits: totalCredits, schnitt: schnitt })
+
+        })})
+    })
+
 }
 
-async function createWidget(){
+async function init(data){
+
+    if (config.runsInWidget){
+
+        // TODO: Check widgetParameter
+        // TODO: Check if content of args.widgetParameter fits with the needed content (slice out e-mail and password
+        // TODO: Check if login works
+        // TODO: IF login works, then fetch the data and submit it to createWidget()
+        // TODO: Otherwise, show in the widget that the login did not work
+        console.log(data)
+
+
+        let widget = await createWidget(data)
+        widget.setPadding(0,4,0,4)
+
+        if (MEDIUMWIDGET){
+            await widget.presentMedium()
+        } else {
+            await widget.presentSmall()
+        }
+
+        Script.setWidget(widget)
+        Script.complete()
+    }else{
+        //redirect to Dualis
+        Safari.open("https://dualis.dhbw.de")
+    }
+}
+
+// after crawl:
+
+async function createWidget(data){
+    console.log(data)
     const list = new ListWidget()
 
     const headerRow = list.addStack();
@@ -59,31 +122,12 @@ async function createWidget(){
     gradeRow.layoutHorizontally()
     gradeRow.centerAlignContent()
 
-    const placeholderDataSet = [
-        {
-            'courseName': 'TheoInf 3',
-            'grade': 2.9
-        },
-        {
-            'courseName': 'Datenbanken',
-            'grade': '⏳'
-        },
-        {
-            'courseName': 'Physik',
-            'grade': 'WKL'
-        },
-        {
-            'courseName': 'Digitaltechnik',
-            'grade': 2.4
-        }
-    ]
-
-    createGradeBlock(placeholderDataSet, 0, 3, gradeRow)
+    createGradeBlock(data["noten"], 0, 3, gradeRow)
 
     if (MEDIUMWIDGET) {
         const emptySpace = gradeRow.addStack();
         emptySpace.setPadding(0,8,0,8)
-        createGradeBlock(placeholderDataSet, 4, 7, gradeRow)
+        createGradeBlock(data["noten"], 4, 7, gradeRow)
     }
 
     const footer = list.addStack();
@@ -100,11 +144,23 @@ function createGradeBlock(dataSet, minRange, maxRange, gradeRow){
     gradeBlock.layoutVertically()
     gradeBlock.centerAlignContent()
     for (let i = minRange; i < maxRange + 1; i++){
-        gradeBlock.addText(dataSet[i].courseName + ": " + dataSet[i].grade).font
+        gradeBlock.addText(convertLongNameToShortName(dataSet[i].kurs) + ": " + dataSet[i].note).font
             = Font.mediumSystemFont(14)
     }
     gradeBlock.backgroundColor = new Color('cccccc', 0.1)
     gradeBlock.cornerRadius = 8
     gradeBlock.setPadding(8,8,8,8)
     return gradeBlock;
+}
+
+function convertLongNameToShortName(name) {
+    let shortName;
+    switch (name){
+        case name.includes("Mathematik"):
+            shortName = "Mathe"
+            break;
+        default:
+            shortName = name;
+    }
+    return shortName
 }
