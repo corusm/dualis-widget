@@ -13,6 +13,96 @@ let MEDIUMWIDGET = (config.widgetFamily === 'medium') ? true : false
 
 // Web Crawl Function
 
+await loadSite()
+
+async function loadSite() {
+      let url='https://dualis.dhbw.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N000000000000001,-N000324,-Awelcome'
+      var wbv = new WebView()
+      await wbv.loadURL(url)
+      //javasript to grab data from the website
+      let jsc = `
+      var arr = new Array()
+      
+      document.getElementById('field_user').value = "leinz.niklas-it19@it.dhbw-ravensburg.de"
+      document.getElementById('field_pass').value = "Salkin1903@home"
+      document.getElementById('cn_loginForm').submit()
+      
+      `
+      //Run the javascript
+      await wbv.evaluateJavaScript(jsc)
+      await wbv.waitForLoad()
+      
+      let tm = new Timer()
+      tm.timeInterval = 2000
+      
+      tm.schedule(function() {
+        
+        let jsc2 = ` document.getElementsByClassName('link000310')[0].click() `
+        
+        wbv.evaluateJavaScript(jsc2)
+        
+        wbv.waitForLoad().then(r => { wbv.getHTML().then(r => {
+        
+          let tab = r.split("table")[1]
+          tab = `<table ${tab}table>`
+          tab = tab.split('tr')
+          
+          let schnitt = r.split("table")[3].split("</th")[1].split('>')[2].trim()
+          
+          let grades = []
+          let totalCredits
+          
+          // console.log(tab[1])
+          for (let to = 1; to < tab.length-1; to++) {
+            // console.log(tab[to])
+            if (tab[to].includes('T3')) {
+              try {
+                  let modul = tab[to].split('td')[1].trim().substr(15).split('<')[0]
+                  let kurs = tab[to].split(',800,600);">')[1].split('</a>')[0]
+                  let zahlen = tab[to].split('<td class="tbdata" style="text-align:right;">')
+                  let credits = zahlen[2].trim().split('<')[0]
+                  let note = zahlen[3].trim().split('<')[0]
+                  
+                  grades.push({ modul: modul, kurs: kurs, credits: credits, note: note })
+                  
+              } catch(e) {
+                  // console.log('error')
+              } 
+            } else if (tab[to].includes('Friedrichshafen') && tab[to].includes('Summe')) {
+              totalCredits = tab[to].split('nowrap;"> ')[1].split(',0')[0]
+            }
+          }
+          
+          // Output
+          let finalJSON = { noten: grades, totalCredits: totalCredits, schnitt: schnitt }
+          return finalJSON
+          
+          
+          
+        
+        })})
+      })      
+}
+
+
+
+
+
+
+function getFileManager() {
+  try {
+    fm = FileManager.iCloud()
+  } catch(e) {
+    fm = FileManager.local()
+  }
+  
+  try {
+    fm.documentsDirectory()
+  } catch(e) {
+    fm = FileManager.local()
+  }
+
+}
 
 
 // Widget
