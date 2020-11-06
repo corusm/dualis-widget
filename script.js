@@ -1,8 +1,12 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
 // icon-color: green; icon-glyph: magic;
-
-let data = await loadSite()
+if (config.runsInWidget){
+    await loadSite()
+}else{
+    //redirect to Dualis
+    Safari.open("https://dualis.dhbw.de")
+}
 
 async function loadSite() {
     let data;
@@ -10,10 +14,11 @@ async function loadSite() {
     var wbv = new WebView()
     await wbv.loadURL(url)
     //javasript to grab data from the website
+    //DEPRECATED: Will be replaced with args.widgetParameter
     let jsc = `
       var arr = new Array()
       
-      document.getElementById('field_user').value = "EMAIL"
+      document.getElementById('field_user').value = "E-MAIL"
       document.getElementById('field_pass').value = "PASSWORD"
       document.getElementById('cn_loginForm').submit()
       
@@ -73,31 +78,26 @@ async function loadSite() {
 
 async function init(data){
 
-    if (config.runsInWidget){
-
-        // TODO: Check widgetParameter
-        // TODO: Check if content of args.widgetParameter fits with the needed content (slice out e-mail and password
-        // TODO: Check if login works
-        // TODO: IF login works, then fetch the data and submit it to createWidget()
-        // TODO: Otherwise, show in the widget that the login did not work
-        console.log(data)
+    // TODO: Check widgetParameter
+    // TODO: Check if content of args.widgetParameter fits with the needed content (slice out e-mail and password
+    // TODO: Check if login works
+    // TODO: IF login works, then fetch the data and submit it to createWidget()
+    // TODO: Otherwise, show in the widget that the login did not work
+    console.log(data)
 
 
-        let widget = await createWidget(data)
-        widget.setPadding(0,4,0,4)
+    let widget = await createWidget(data)
+    widget.setPadding(0,4,0,4)
 
-        if (config.widgetFamily === 'medium'){
-            await widget.presentMedium()
-        } else {
-            await widget.presentSmall()
-        }
-
-        Script.setWidget(widget)
-        Script.complete()
-    }else{
-        //redirect to Dualis
-        Safari.open("https://dualis.dhbw.de")
+    if (config.widgetFamily === 'medium'){
+        await widget.presentMedium()
+    } else {
+        await widget.presentSmall()
     }
+
+    Script.setWidget(widget)
+    Script.complete()
+
 }
 
 // after crawl:
@@ -106,33 +106,76 @@ async function createWidget(data){
     console.log(data)
     const list = new ListWidget()
 
-    const headerRow = list.addStack();
-    const headerText = headerRow.addText("⚔️ Dualis")
-    headerText.textColor = new Color('e74c3c', 1)
-    const headerTextExtended = headerRow.addText(" - Noten")
-    headerText.font = Font.mediumSystemFont(16)
-    headerTextExtended.font = Font.mediumSystemFont(16)
-    headerRow.setPadding(0,0,0,0)
-    headerRow.centerAlignContent()
-    headerRow.addSpacer(3)
-    list.addSpacer(5)
+    if (config.widgetFamily === 'small' || config.widgetFamily === undefined){
 
-    const gradeRow = list.addStack()
-    gradeRow.layoutHorizontally()
-    gradeRow.centerAlignContent()
+        const headerRow = list.addStack()
+        headerRow.setPadding(8, 6, 6, 6)
+        headerRow.centerAlignContent()
 
-    createGradeBlock(data["noten"], 0, 3, gradeRow)
+        const headline = headerRow.addStack()
+        const headlineText = headline.addText("✏️ Dualis")
+        headlineText.textColor = new Color('e74c3c', 1)
+        headlineText.font = Font.mediumSystemFont(16)
+        headline.addSpacer()
 
-    if (config.widgetFamily === 'medium') {
-        const emptySpace = gradeRow.addStack();
-        emptySpace.setPadding(0,8,0,8)
-        createGradeBlock(data["noten"], 4, 7, gradeRow)
+        const averageBlock = headerRow.addStack()
+        averageBlock.layoutHorizontally()
+        averageBlock.setPadding(0, 8, 0, 0)
+        const averageText = averageBlock.addText("Ø " + data["schnitt"])
+        averageText.font = Font.mediumSystemFont(16)
+
+        const gradeRow = list.addStack()
+        gradeRow.setPadding(0, 0, 0, 0)
+        gradeRow.layoutHorizontally()
+        gradeRow.centerAlignContent()
+
+        createGradeBlock(data["noten"], 0, 3, gradeRow)
+
+        const footer = list.addStack();
+        footer.setPadding(4, 6, 8, 6)
+        const footerText = footer.addText("Klicken, um Dualis zu öffnen")
+        footerText.font = Font.mediumSystemFont(10)
     }
 
-    const footer = list.addStack();
-    footer.setPadding(2,4,0,4)
-    const footerText = footer.addText("Klicken, um Dualis zu öffnen")
-    footerText.font = Font.mediumSystemFont(10)
+
+    if (config.widgetFamily === 'medium') {
+        const wrapperStack = list.addStack();
+        wrapperStack.layoutHorizontally()
+        wrapperStack.addSpacer();
+
+        const leftStack = wrapperStack.addStack();
+        leftStack.layoutVertically()
+        leftStack.centerAlignContent()
+        const headlineText = leftStack.addText("✏️ Dualis")
+        headlineText.textColor = new Color('e74c3c', 1)
+        headlineText.font = Font.mediumSystemFont(16)
+        leftStack.addSpacer(8)
+
+        createGradeBlock(data["noten"], 0, 3, leftStack)
+
+        leftStack.addSpacer(8)
+        const footer = leftStack.addStack()
+        const footerText = footer.addText("Klicken, um Dualis zu öffnen")
+        footerText.font = Font.mediumSystemFont(10)
+
+        wrapperStack.addSpacer()
+
+        const rightStack = wrapperStack.addStack()
+        rightStack.layoutVertically()
+        rightStack.centerAlignContent()
+
+        const averageBlock = rightStack.addStack();
+        averageBlock.addSpacer()
+        averageBlock.setPadding(0, 0, 0, 8)
+        const averageText = averageBlock.addText("Ø " + data["schnitt"])
+        averageText.font = Font.mediumSystemFont(16)
+        rightStack.addSpacer(8)
+
+        createGradeBlock(data["noten"], 4, 7, rightStack)
+        wrapperStack.addSpacer()
+
+    }
+
 
     return list
 }
@@ -143,8 +186,13 @@ function createGradeBlock(dataSet, minRange, maxRange, gradeRow){
     gradeBlock.layoutVertically()
     gradeBlock.centerAlignContent()
     for (let i = minRange; i < maxRange + 1; i++){
-        gradeBlock.addText(convertLongNameToShortName(dataSet[i].kurs) + ": " + dataSet[i].note).font
-            = Font.mediumSystemFont(14)
+        let note;
+        if (dataSet[i].note === 'b'){
+            note = "✓"
+        }else{
+            note = dataSet[i].note
+        }
+        gradeBlock.addText(convertLongNameToShortName(dataSet[i].kurs) + ": " + note).font = Font.mediumSystemFont(14)
     }
     gradeBlock.backgroundColor = new Color('cccccc', 0.1)
     gradeBlock.cornerRadius = 8
@@ -161,6 +209,12 @@ function convertLongNameToShortName(name) {
         case name.contains("Mathematik I"):
             shortName = "Mathe 1"
             break;
+        case name.contains("Technische Informatik II"):
+            shortName = "TI 2"
+            break;
+        case name.contains("Technische Informatik I"):
+            shortName = "TI 1"
+            break;
         case name.contains("Theoretische Informatik III"):
             shortName = "TheoInf 3"
             break;
@@ -171,7 +225,13 @@ function convertLongNameToShortName(name) {
             shortName = "TheoInf 1"
             break;
         case name.contains("Schlüsselqualifikationen"):
-            shortName = "Schlüsselq."
+            shortName = "Schlüsselquali."
+            break;
+        case name.contains("Praxisprojekt III"):
+            shortName = "T1000"
+            break;
+        case name.contains("Praxixprojekt II"):
+            shortName = "T2000"
             break;
         case name.contains("Praxisprojekt I"):
             shortName = "T1000"
@@ -179,7 +239,7 @@ function convertLongNameToShortName(name) {
         default:
             shortName = name;
     }
-    return name;
+    return shortName;
 }
 
 String.prototype.contains = function(substr) {
