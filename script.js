@@ -2,7 +2,6 @@
 // These must be at the very top of the file. Do not edit.
 // icon-color: green; icon-glyph: magic;
 
-let MEDIUMWIDGET = (config.widgetFamily === 'medium') ? true : false
 let data = await loadSite()
 
 async function loadSite() {
@@ -14,8 +13,8 @@ async function loadSite() {
     let jsc = `
       var arr = new Array()
       
-      document.getElementById('field_user').value = ""
-      document.getElementById('field_pass').value = ""
+      document.getElementById('field_user').value = "EMAIL"
+      document.getElementById('field_pass').value = "PASSWORD"
       document.getElementById('cn_loginForm').submit()
       
       `
@@ -26,7 +25,7 @@ async function loadSite() {
     let tm = new Timer()
     tm.timeInterval = 2000
 
-    return tm.schedule(function() {
+    tm.schedule(function() {
 
         let jsc2 = `document.getElementsByClassName('link000310')[0].click()`
 
@@ -87,7 +86,7 @@ async function init(data){
         let widget = await createWidget(data)
         widget.setPadding(0,4,0,4)
 
-        if (MEDIUMWIDGET){
+        if (config.widgetFamily === 'medium'){
             await widget.presentMedium()
         } else {
             await widget.presentSmall()
@@ -124,7 +123,7 @@ async function createWidget(data){
 
     createGradeBlock(data["noten"], 0, 3, gradeRow)
 
-    if (MEDIUMWIDGET) {
+    if (config.widgetFamily === 'medium') {
         const emptySpace = gradeRow.addStack();
         emptySpace.setPadding(0,8,0,8)
         createGradeBlock(data["noten"], 4, 7, gradeRow)
@@ -154,13 +153,35 @@ function createGradeBlock(dataSet, minRange, maxRange, gradeRow){
 }
 
 function convertLongNameToShortName(name) {
-    let shortName;
-    switch (name){
-        case name.includes("Mathematik"):
-            shortName = "Mathe"
+    let shortName
+    switch (true){
+        case name.contains("Mathematik II"):
+            shortName = "Mathe 2"
+            break;
+        case name.contains("Mathematik I"):
+            shortName = "Mathe 1"
+            break;
+        case name.contains("Theoretische Informatik III"):
+            shortName = "TheoInf 3"
+            break;
+        case name.contains("Theoretische Informatik II"):
+            shortName = "TheoInf 2"
+            break;
+        case name.contains("Theoretische Informatik I"):
+            shortName = "TheoInf 1"
+            break;
+        case name.contains("Schlüsselqualifikationen"):
+            shortName = "Schlüsselq."
+            break;
+        case name.contains("Praxisprojekt I"):
+            shortName = "T1000"
             break;
         default:
             shortName = name;
     }
-    return shortName
+    return name;
+}
+
+String.prototype.contains = function(substr) {
+    return this.indexOf(substr) > -1;
 }
