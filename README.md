@@ -11,6 +11,12 @@ the size you want.
 7. Select your *Dualis* script. Also, please insert your credentials for the *Dualis* login
 in the text field below. 
 
+## How to Login
+Add E-Mail and Password to Widget-Parameters, seperated by ',' [Comma] .
+
+<img src="https://raw.githubusercontent.com/corusm/dualis-widget/main/login.jpg" alt="Login" height="400px">
+
+
 ## TODO
 - Durch alle Noten loopen
 - Aliase für Fächer erweitern
@@ -23,3 +29,4 @@ They will only be used for accessing the Dualis dashboard.**
 You can check the code anytime you want to be sure that no data will be leaked.
 
 ## Contribute by [@julianYaman](https://github.com/julianYaman)
+## Discord 
