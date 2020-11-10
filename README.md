@@ -1,4 +1,5 @@
 # Scriptable Widget for Dualis
+![](widget.jpg)
 ## Installation
 1. Install the [Scriptable](https://apps.apple.com/us/app/scriptable/id1405459188?ign-mpt=uo%3D4) App
 2. Copy the code of the `script.js` file of this repository [here](https://github.com/corusm/dualis-widget/blob/main/script.js).
