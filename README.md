@@ -29,5 +29,5 @@ They will only be used for accessing the Dualis dashboard.**
 You can check the code anytime you want to be sure that no data will be leaked.
 
 ## Contributed by [@julianYaman](https://github.com/julianYaman)
-## [Discord](https://discord.gg/ccpgH3b)
+## [Discord](https://discord.gg/nDRgjsbbHx)
 
