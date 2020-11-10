@@ -14,6 +14,7 @@ in the text field below.
 ## TODO
 - Durch alle Noten loopen
 - Aliase für Fächer erweitern
+- Login Check
 
 ## Security notice
 **Your credentials will be saved only on your phone and will not be stored on a server!
